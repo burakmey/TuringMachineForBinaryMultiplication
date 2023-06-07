@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace TuringMachineForSquareOfNumber
 {
@@ -12,15 +14,38 @@ namespace TuringMachineForSquareOfNumber
         public void RunTuringMachine(List<char> newMemory)
         {
             Memory = newMemory;
+            isFinished = false;
+            controlHead = 1;
+            nextState = 0;
             while (!isFinished)
             {
                 State(nextState);
+                PrintMemory();
             }
         }
         public string GetMemory()
         {
             string copyMemory = new string(Memory.ToArray());
             return copyMemory;
+        }
+        void PrintMemory()
+        {
+            Console.Write("...");
+            for (int i = 0; i < Memory.Count; i++)
+            {
+                Console.Write("|");
+                if (i == controlHead)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write($"{Memory[i]}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.Write($"{Memory[i]}");
+                }
+            }
+            Console.Write("|...\n");
         }
         void State(int currentState)
         {
@@ -57,6 +82,11 @@ namespace TuringMachineForSquareOfNumber
                     {
                         controlHead--;
                         nextState = 2;
+                    }
+                    else if (c == '*') // (*/*,R)
+                    {
+                        controlHead++;
+                        nextState = 41;
                     }
                     break;
                 case 2: //***************************************************************************************
@@ -212,8 +242,13 @@ namespace TuringMachineForSquareOfNumber
                     }
                     break;
                 case 12: //***************************************************************************************
-                    //If there is any digit to read go back.
-                    if (c == '0' || c == '1') // (0/0,R) (1/1,R)
+                    //If there is '1' to read go back.
+                    if (c == '0') // (0/0,L)
+                    {
+                        controlHead--;
+                        nextState = currentState;
+                    }
+                    else if (c == '1') // (1/1,R)
                     {
                         controlHead++;
                         nextState = 13;
@@ -254,7 +289,7 @@ namespace TuringMachineForSquareOfNumber
                     break;
                 case 15: //***************************************************************************************
                     //Go left and stay this state until read 'B'.
-                    if (c == '0' || c == '1') // (0/0,L) (1/1,L)
+                    if (c == '0' || c == '1' || c == '*' || c == 'X' || c == '=') // (0/0,L) (1/1,L) (*/*,L) (X/X,L) (=/=,L)
                     {
                         controlHead--;
                         nextState = currentState;
@@ -538,13 +573,20 @@ namespace TuringMachineForSquareOfNumber
                     break;
                 case 33: //***************************************************************************************
                     //Remove elements from 'B' to '1'.
-                    if (c == 'X' || c == '+') // (X/B,R) (+/B,R)
+                    if (c == 'X' || c == '+' || c == '0') // (X/B,R) (+/B,R) (0/B,R)
                     {
                         Memory.RemoveAt(controlHead); //Assuming both left and right terminals are finite in this Turing Machine.
                         nextState = currentState;
                     }
                     else if (c == '1') // (1/1,R)
                     {
+                        controlHead++;
+                        nextState = 17;
+                    }
+                    else if (c == 'B') // (B/0,R)
+                    {
+                        Memory[controlHead] = '0';
+                        Memory.Add('B'); //Assuming both left and right terminals are finite in this Turing Machine.
                         controlHead++;
                         nextState = 17;
                     }
@@ -628,6 +670,21 @@ namespace TuringMachineForSquareOfNumber
                 case 40: //***************************************************************************************
                     //Turing Machine's calculation is finished!
                     isFinished = true;
+                    break;
+                case 41: //***************************************************************************************
+                    //This case for one of zero multiplication situations.
+                    if (c == 'X' || c == '=') // (X/X,R) (=/=,R)
+                    {
+                        controlHead++;
+                        nextState = currentState;
+                    }
+                    else if (c == 'B') // (B/0,L)
+                    {
+                        Memory[controlHead] = '0';
+                        Memory.Add('B'); //Assuming both left and right terminals are finite in this Turing Machine.
+                        controlHead--;
+                        nextState = 15;
+                    }
                     break;
                 default: //***************************************************************************************
                     break;

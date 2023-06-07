@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace TuringMachineForSquareOfNumber
@@ -7,16 +8,44 @@ namespace TuringMachineForSquareOfNumber
     {
         static void Main(string[] args)
         {
+            string memorySet, input, result;
+            int number;
+            bool isCorrectInput;
             TuringMachine turingMachine = new TuringMachine();
-            List<char> memory = new List<char>();
-            string memoryCopy = "B1011*1011=B";
-            for (int i = 0; i < memoryCopy.Length; i++)
+        Start:
+            isCorrectInput = false;
+            do
             {
-                memory.Add(memoryCopy[i]);
+                Console.Write("Enter a number to get its square : ");
+                input = Console.ReadLine();
+                if (int.TryParse(input, out number) && number >= 0)
+                {
+                    isCorrectInput = true;
+                }
+                else
+                {
+                    Console.WriteLine("Make sure you entered nonnegative integer number.");
+                    Console.WriteLine("Press any to enter another value.");
+                    Console.ReadKey();
+                    Console.Clear();
+                }
             }
+            while (!isCorrectInput);
+            input = Convert.ToString(number, 2);
+            memorySet = "B" + input + "*" + input + "=B"; // string memory = "B101*101=B" form.
+            List<char> memory = new List<char>(memorySet);
             turingMachine.RunTuringMachine(memory);
-            memoryCopy = turingMachine.GetMemory();
-            MessageBox.Show($"{memoryCopy}");
+            memorySet = turingMachine.GetMemory();
+            memorySet = memorySet.Remove(0, 1);
+            memorySet = memorySet.Remove(memorySet.Length - 1, 1);
+            result = Convert.ToInt32(memorySet, 2).ToString();
+            Console.WriteLine($"Square of {number} is {result}");
+            Console.WriteLine("Press 'esc' to exit or press any to recalculate.");
+            if (Console.ReadKey().Key != ConsoleKey.Escape)
+            {
+                Console.Clear();
+                goto Start;
+            }
         }
     }
 }
