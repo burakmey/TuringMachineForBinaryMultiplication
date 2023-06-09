@@ -32,7 +32,8 @@ namespace TuringMachineForSquareOfNumber
             }
             while (!isCorrectInput);
             input = Convert.ToString(number, 2);
-            memorySet = "B" + input + "*" + input + "=B"; // string memory = "B101*101=B" form.
+            memorySet = "B" + input + "*" + input + "=B";
+            //memorySet = "B11001*1000=B";//Test 
             List<char> memory = new List<char>(memorySet);
             turingMachine.RunTuringMachine(memory);
             memorySet = turingMachine.GetMemory();
